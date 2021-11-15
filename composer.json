@@ -1,12 +1,12 @@
 {
-    "name": "littlemo/weibo",
-    "description": "the littlemo weibo utils",
+    "name": "littlemo/model",
+    "description": "the littlemo model utils",
     "type": "project",
     "keywords": [
         "littlemo",
         "tool",
         "utils",
-        "weibo"
+        "model"
     ],
     "homepage": "https://ggui.cn/",
     "license": "Apache-2.0",
@@ -24,7 +24,7 @@
     },
     "autoload": {
         "psr-4": {
-            "littlemo\\weibo\\": "src"
+            "littlemo\\model\\": "src"
         }
     }
 }
