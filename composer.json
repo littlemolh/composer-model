@@ -1,0 +1,30 @@
+{
+    "name": "littlemo/weibo",
+    "description": "the littlemo weibo utils",
+    "type": "project",
+    "keywords": [
+        "littlemo",
+        "tool",
+        "utils",
+        "weibo"
+    ],
+    "homepage": "https://ggui.cn/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "littlemo",
+            "email": "25362583@qq.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0"
+    },
+    "require-dev": {
+        "topthink/framework": "~5.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "littlemo\\weibo\\": "src"
+        }
+    }
+}
