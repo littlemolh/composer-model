@@ -35,6 +35,9 @@ class BaseModel extends Model
     // 追加属性
     protected $append = [];
 
+    //数据缓存时间
+    protected $cacheTime = 3600;
+
 
     /**
      * 获取列表数据
@@ -327,7 +330,7 @@ class BaseModel extends Model
         }
         $data = self::get($id);
         !empty($data) && $data = $data->toArray();
-        Cache::set($name, $data, 3600);
+        Cache::set($name, $data, $this->cacheTime);
         return $data;
     }
     /**
@@ -417,16 +420,18 @@ class BaseModel extends Model
      * @author LittleMo 25362583@qq.com
      * @since 2021-07-01
      * @version 2021-07-01
-     * @param int $id 主键ID
+     * @param int $id 主键ID/或查找的数据
      * @param array $params 编辑内容
      * @return int
      */
-    public function edit($id = 0, $params = [])
+    public function edit($detail = 0, $params = [])
     {
         //清除缓存
-        $this->rmRowDataCache($id);
+        $this->rmRowDataCache($detail);
+        if (!is_object($detail)) {
+            $detail = $this->get($detail);
+        }
 
-        $detail = $this->get($id);
         return $detail->save($params);
     }
 
@@ -441,9 +446,15 @@ class BaseModel extends Model
      * @param int $id 主键ID
      * @return int
      */
-    public function del($id = 0)
+    public function del($detail = 0)
     {
-        $detail = $this->get($id);
+        //清除缓存
+        $this->rmRowDataCache($detail);
+
+        if (!is_object($detail)) {
+            $detail = $this->get($detail);
+        }
+
         return $detail->delete();
     }
 }
