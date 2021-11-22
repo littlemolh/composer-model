@@ -209,7 +209,7 @@ class BuildModel extends Command
             $contents .= "\n";
             $contents .= "namespace " . self::$namespace . "; \n";
             $contents .= "\n";
-            $contents .= "use littlemo\\tool\\model\\BaseModel; \n";
+            $contents .= "use littlemo\\model\\BaseModel; \n";
             $contents .= "\n";
             $contents .= "class " . $className . " extends BaseModel \n{ \n";
             $contents .= "    // 表名 \n";
