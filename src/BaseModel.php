@@ -365,7 +365,7 @@ class BaseModel extends Model
      */
     private function getRowDataCacheName($id)
     {
-        return str_replace('_', '-', $this->table) . '-row-data-' . $id;
+        return str_replace('_', '-', $this->table) . ':row-data:' . $id;
     }
     /**
      * 生成列表信息缓存名称
@@ -387,7 +387,7 @@ class BaseModel extends Model
             $paramText .= $k . '=' . $k . '&';
         }
         $paramText = rtrim($paramText, '&');
-        $name = str_replace('_', '-', $this->table) . '-list-data-';
+        $name = str_replace('_', '-', $this->table) . ':list-data:';
         $name .= md5($paramText);
         return $name;
     }
