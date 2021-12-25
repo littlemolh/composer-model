@@ -69,7 +69,7 @@ class BaseModel extends Model
             ->order($orderby, $orderway)
             ->select();
         $this->parseListData($rows);
-        $data['data'] = $data['rows'] = $rows;
+        $data['rows'] = $rows;
         $data['total'] = $this->totalCount($params, $with)['count'] ?? 0;
         $data['page'] = $page;
         $data['lastpage'] = ceil($data['total'] / $pagesize);
