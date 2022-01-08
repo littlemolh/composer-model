@@ -477,6 +477,6 @@ class BaseModel extends \think\Model
      */
     public function getError()
     {
-        return $this->_error ? __($this->_error) : '';
+        return (function_exists('__')) ? __($this->_error) : $this->_error;
     }
 }
