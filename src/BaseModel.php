@@ -37,6 +37,8 @@ class BaseModel extends \think\Model
     //数据缓存时间
     protected $cacheTime = 3600;
 
+    protected $_error = '';
+
 
     /**
      * 获取列表数据
@@ -455,5 +457,26 @@ class BaseModel extends \think\Model
         }
 
         return $detail->delete();
+    }
+
+    /**
+     * 设置错误信息
+     *
+     * @param $error 错误信息
+     * @return Auth
+     */
+    public function setError($error)
+    {
+        $this->_error = $error;
+        return $this;
+    }
+
+    /**
+     * 获取错误信息
+     * @return string
+     */
+    public function getError()
+    {
+        return $this->_error ? __($this->_error) : '';
     }
 }
