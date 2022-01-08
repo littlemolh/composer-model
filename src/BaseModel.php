@@ -12,10 +12,9 @@
 
 namespace littlemo\model;
 
-use think\Model;
 use think\Cache;
 
-class BaseModel extends Model
+class BaseModel extends \think\Model
 {
     // 表名
 
