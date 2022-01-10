@@ -27,7 +27,8 @@ class Model extends \think\Model
     protected $tablePrimary = 'id';
     protected $deleteTime = false;
 
-    protected $aliasName = 'a';
+    protected $primaryId = 0; //主键ID
+    protected $aliasName = 'a'; //(主表)别名
     protected $page = 1;
     protected $pagesize = 10;
 
@@ -391,6 +392,8 @@ class Model extends \think\Model
             $paramText .= $k . '=' . $k . '&';
         }
         $paramText = rtrim($paramText, '&');
+
+        // \littlemo\utils\Tools::createSign($params);
         $name = str_replace('_', '-', $this->table) . ':list-data:';
         $name .= md5($paramText);
         return $name;
@@ -407,9 +410,10 @@ class Model extends \think\Model
      * @param array $params
      * @return boolean/int
      */
-    public function add($params = [], $allowField = [])
+    public function add($params, $allowField = [])
     {
         if ($this->allowField($allowField ?: true)->save($params)) {
+            $this->primaryId = $this->id;
             return $this->id;
         } else {
             return false;
@@ -428,7 +432,7 @@ class Model extends \think\Model
      * @param array $params 编辑内容
      * @return int
      */
-    public function edit($detail = 0, $params = [])
+    public function edit($detail, $params = [])
     {
         //清除缓存
         $this->rmRowDataCache($detail);
@@ -450,14 +454,14 @@ class Model extends \think\Model
      * @param int $id 主键ID
      * @return int
      */
-    public function del($detail = 0)
+    public function del($detail)
     {
         //清除缓存
-        $this->rmRowDataCache($detail);
 
         if (!is_object($detail)) {
             $detail = $this->get($detail);
         }
+        $this->rmRowDataCache($detail[$this->tablePrimary]);
 
         return $detail->delete();
     }
