@@ -211,7 +211,7 @@ class BuildModel extends Command
             $contents .= "\n";
             // $contents .= "use littlemo\\model\\BaseModel; \n";
             $contents .= "\n";
-            $contents .= "class " . $className . " extends \\littlemo\\model\\BaseModel \n{ \n";
+            $contents .= "class " . $className . " extends \\littlemo\\model\\Model \n{ \n";
             $contents .= "    // 表名 \n";
             $contents .= '    protected $' . (substr($val, 0, strlen($prefix)) == $prefix ? 'name' : 'table') . ' = \'' . $table_name . '\';' . " \n";
             $contents .= "    // 定义时间戳字段名 \n";
