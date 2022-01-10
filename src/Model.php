@@ -92,6 +92,9 @@ class Model extends \think\Model
     public function parseListData(&$data = [])
     {
         foreach ($data as $key => &$val) {
+            if (is_object($val)) {
+                $val = $val->toArray();
+            }
         }
     }
 
