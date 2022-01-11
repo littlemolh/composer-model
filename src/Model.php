@@ -434,11 +434,12 @@ class Model extends \think\Model
      */
     public function edit($detail, $params = [])
     {
-        //清除缓存
-        $this->rmRowDataCache($detail);
+
         if (!is_object($detail)) {
             $detail = $this->get($detail);
         }
+        //清除缓存
+        $this->rmRowDataCache($detail[$this->tablePrimary]);
 
         return $detail->save($params);
     }
@@ -456,11 +457,10 @@ class Model extends \think\Model
      */
     public function del($detail)
     {
-        //清除缓存
-
         if (!is_object($detail)) {
             $detail = $this->get($detail);
         }
+        //清除缓存
         $this->rmRowDataCache($detail[$this->tablePrimary]);
 
         return $detail->delete();
