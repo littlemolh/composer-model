@@ -413,8 +413,8 @@ class Model extends \think\Model
     public function add($params, $allowField = [])
     {
         if ($this->allowField($allowField ?: true)->save($params)) {
-            $this->primaryId = $this->id;
-            return $this->id;
+            $this->primaryId = $this[$this->tablePrimary];
+            return $this->primaryId;
         } else {
             return false;
         }
@@ -428,20 +428,20 @@ class Model extends \think\Model
      * @author LittleMo 25362583@qq.com
      * @since 2021-07-01
      * @version 2021-07-01
-     * @param int $id 主键ID/或查找的数据
-     * @param array $params 编辑内容
+     * @param int|object    $row        主键ID/当前要更新的数据对象
+     * @param array         $params     编辑内容
+     * @param array         $allowField 允许修改的字段，默认为true
      * @return int
      */
-    public function edit($detail, $params = [])
+    public function edit($row, $params = [], $allowField = [])
     {
-
-        if (!is_object($detail)) {
-            $detail = $this->get($detail);
+        if (!is_object($row)) {
+            $row = $this->get($row);
         }
         //清除缓存
-        $this->rmRowDataCache($detail[$this->tablePrimary]);
+        $this->rmRowDataCache($row[$this->tablePrimary]);
 
-        return $detail->save($params);
+        return $row->allowField($allowField ?: true)->save($params);
     }
 
     /**
@@ -452,18 +452,18 @@ class Model extends \think\Model
      * @author LittleMo 25362583@qq.com
      * @since 2021-07-01
      * @version 2021-07-01
-     * @param int $id 主键ID
+     * @param int|object $row 主键ID/当前要删除的数据对象
      * @return int
      */
-    public function del($detail)
+    public function del($row)
     {
-        if (!is_object($detail)) {
-            $detail = $this->get($detail);
+        if (!is_object($row)) {
+            $row = $this->get($row);
         }
         //清除缓存
-        $this->rmRowDataCache($detail[$this->tablePrimary]);
+        $this->rmRowDataCache($row[$this->tablePrimary]);
 
-        return $detail->delete();
+        return $row->delete();
     }
 
     /**
