@@ -114,7 +114,7 @@ class Model extends \think\Model
     {
         $data = [];
 
-        $wsql = $this->commonWsql($params);
+        $wsql = $this->commonWsql($params, $with);
         $wsql_time = [];
         //处理时间-若不限定时间则查询数据的开始和结束时间
         $start_time = !empty($params['start_date']) ? strtotime($params['start_date']) : 0;
