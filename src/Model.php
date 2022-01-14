@@ -197,7 +197,7 @@ class Model extends \think\Model
                 $params[$k] = ['>=', $params['start_time']];
                 unset($params['start_time']);
             } elseif (isset($params['end_time'])) {
-                $params[$k] = ['<=', $params['end_time']];
+                $params[$k] = ['<', $params['end_time']];
                 unset($params['end_time']);
             }
         }
