@@ -238,7 +238,7 @@ class Model extends \think\Model
         } else {
             $fields[] = ' count(*) as count ';
         }
-        $data['list'] = $this
+        $data['rows'] = $this
             ->field($fields)
             ->with($with)
             ->where($wsql)
