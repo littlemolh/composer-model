@@ -186,7 +186,10 @@ class Model extends \think\Model
             }
 
             if (isset($params['end_date'])) {
-                $params['end_time'] = strtotime('+1 day', strtotime($params['end_date']));
+                $params['end_time'] = strtotime($params['end_date']);
+                if (0 == date("H") && 0 == date("i") && 0 == date("s")) {
+                    $params['end_time'] = strtotime('+1 day', $params['end_time']) - 1;
+                }
                 unset($params['end_date']);
             }
 
@@ -197,7 +200,7 @@ class Model extends \think\Model
                 $params[$k] = ['>=', $params['start_time']];
                 unset($params['start_time']);
             } elseif (isset($params['end_time'])) {
-                $params[$k] = ['<', $params['end_time']];
+                $params[$k] = ['<=', $params['end_time']];
                 unset($params['end_time']);
             }
         }
