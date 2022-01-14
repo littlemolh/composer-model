@@ -179,15 +179,26 @@ class Model extends \think\Model
         //时间筛选
         if ($this->createTime || $this->updateTime) {
             $k = $this->createTime ?: $this->updateTime;
-            if (isset($params['start_date']) && isset($params['end_date'])) {
-                $params[$k] = ['between', $params['start_date'] . ',' . $params['end_date']];
-                unset($params['start_date'], $params['end_date']);
-            } elseif (isset($params['start_date'])) {
-                $params[$k] = ['>=', $params['start_date']];
+
+            if (isset($params['start_date'])) {
+                $params['start_time'] = strtotime($params['start_date']);
                 unset($params['start_date']);
-            } elseif (isset($params['end_date'])) {
-                $params[$k] = ['<=', $params['end_date']];
+            }
+
+            if (isset($params['end_date'])) {
+                $params['start_time'] = strtotime('+1 day', strtotime($params['start_date']));
                 unset($params['end_date']);
+            }
+
+            if (isset($params['start_time']) && isset($params['end_time'])) {
+                $params[$k] = ['between', $params['start_time'] . ',' . $params['end_time']];
+                unset($params['start_time'], $params['end_time']);
+            } elseif (isset($params['start_time'])) {
+                $params[$k] = ['>=', $params['start_time']];
+                unset($params['start_time']);
+            } elseif (isset($params['end_time'])) {
+                $params[$k] = ['<=', $params['end_time']];
+                unset($params['end_time']);
             }
         }
 
