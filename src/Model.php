@@ -72,7 +72,7 @@ class Model extends \think\Model
             ->select();
         $this->parseListData($rows);
         $data['rows'] = $rows;
-        $data['total'] = $this->totalCount($params, $with)['count'] ?? 0;
+        $data['total'] = $this->totalCount($params, $with) ?: 0;
         $data['page'] = $page;
         $data['lastpage'] = ceil($data['total'] / $pagesize);
         $data['pagesize'] = $pagesize;
@@ -108,50 +108,17 @@ class Model extends \think\Model
      * @since 2021-04-02
      * @version 2021-04-02
      * @param array $params 筛选条件
-     * @return array
+     * @return int
      */
     public function totalCount($params = [], $with = [])
     {
-        $data = [];
-
         $wsql = $this->commonWsql($params, $with);
-        $wsql_time = [];
-        //处理时间-若不限定时间则查询数据的开始和结束时间
-        $start_time = !empty($params['start_date']) ? strtotime($params['start_date']) : 0;
-        $end_time = !empty($params['end_date']) ? strtotime($params['end_date']) : 0;
 
-        if ($this->createTime) {
-            if (empty($start_time)) {
-                $start_time = $this
-                    ->alias($this->aliasName)
-                    ->with($with)
-                    ->where($wsql)
-                    ->min($this->aliasName . '.' . $this->createTime);
-            } else {
-                !empty($start_time) && $wsql_time[$this->aliasName . '.' . $this->createTime] = ['>', $start_time];
-            }
-            if (empty($end_time)) {
-                $end_time = $this
-                    ->alias($this->aliasName)
-                    ->with($with)->where($wsql)
-                    ->max($this->aliasName . '.' . $this->createTime);
-            } else {
-                !empty($end_time) && $wsql_time[$this->aliasName . '.' . $this->createTime] = ['<=', $end_time];
-            }
-        }
-
-        $data['count'] = $this
+        return $this
             ->alias($this->aliasName)
             ->with($with)
             ->where($wsql)
-            ->where($wsql_time)
             ->count();
-
-        $data['start_time'] = $start_time;
-        $data['start_date'] = date('Y-m-d H:i:s', $start_time);
-        $data['end_time'] = $end_time;
-        $data['end_date'] = date('Y-m-d H:i:s', $end_time);
-        return $data;
     }
 
     /**
@@ -168,34 +135,9 @@ class Model extends \think\Model
      */
     public function totalSum($params = [], $field = '')
     {
-        $data = [];
-
         $wsql = $this->commonWsql($params);
-        $wsql_time = '';
-        //处理时间-若不限定时间则查询数据的开始和结束时间
-        $start_time = !empty($params['start_date']) ? strtotime($params['start_date']) : 0;
-        $end_time = !empty($params['end_date']) ? strtotime($params['end_date']) : 0;
 
-        if ($this->createTime) {
-            if (empty($start_time)) {
-                $start_time = $this->where($wsql)->min($this->createTime);
-            } else {
-                $wsql_time .= !empty($start_time) ? ' AND ' . $this->createTime . ' >' . $start_time  : null;
-            }
-            if (empty($end_time)) {
-                $end_time = $this->where($wsql)->max($this->createTime);
-            } else {
-                $wsql_time .= !empty($end_time) ? ' AND ' . $this->createTime . ' <' . $end_time  : null;
-            }
-        }
-
-        $data[$field . '_sum'] = $this->where($wsql)->where($wsql_time)->sum($field);
-
-        $data['start_time'] = $start_time;
-        $data['start_date'] = date('Y-m-d H:i:s', $start_time);
-        $data['end_time'] = $end_time;
-        $data['end_date'] = date('Y-m-d H:i:s', $end_time);
-        return $data;
+        return $this->where($wsql)->sum($field);
     }
 
 
@@ -232,8 +174,25 @@ class Model extends \think\Model
                     continue;
                 }
             }
+        }
 
-            if (!empty($with) && strpos($key, '.') === false) {
+        //时间筛选
+        if ($this->createTime || $this->updateTime) {
+            $k = $this->createTime ?: $this->updateTime;
+            if (isset($params['start_date']) && isset($params['end_date'])) {
+                $params[$k] = ['between', $params['start_date'] . ',' . $params['end_date']];
+                unset($params['start_date'], $params['end_date']);
+            } elseif (isset($params['start_date'])) {
+                $params[$k] = ['>=', $params['start_date']];
+                unset($params['start_date']);
+            } elseif (isset($params['end_date'])) {
+                $params[$k] = ['<=', $params['end_date']];
+                unset($params['end_date']);
+            }
+        }
+
+        if (!empty($with) && strpos($key, '.') === false) {
+            foreach ($params as $key => $val) {
                 $params[$this->aliasName . '.' . $key] = $val;
                 unset($params[$key]);
             }
@@ -259,20 +218,6 @@ class Model extends \think\Model
 
         $wsql  = $this->commonWsql($params);
 
-        //处理时间-若不限定时间则查询数据的开始和结束时间
-        $start_time = $params['start_time'] ?: (!empty($params['start_date']) ? strtotime($params['start_date']) : 0);
-        $end_time = $params['end_time'] ?: (!empty($params['end_date']) ? strtotime($params['end_date']) : 0);
-
-        if (empty($start_time)) {
-            $start_time = $this->where($wsql)->min('createtime');
-        } else {
-            $wsql .= !empty($start_time) ? ' AND ' . $this->aliasName . '.createtime >' . $start_time  : null;
-        }
-        if (empty($end_time)) {
-            $end_time = $this->where($wsql)->max('createtime');
-        } else {
-            $wsql .= !empty($end_time) ? ' AND ' . $this->aliasName . '.createtime <' . $end_time  : null;
-        }
 
         //整理字段
         $fields = null;
@@ -287,6 +232,7 @@ class Model extends \think\Model
         } elseif (is_string($field)) {
             $fields[] = $group;
         }
+
         if (is_string($fields)) {
             $fields .= ',count(*) as count ';
         } else {
@@ -309,10 +255,6 @@ class Model extends \think\Model
             ->group($group)
             ->count();
 
-        $data['start_time'] = $start_time;
-        $data['start_date'] = !empty($start_time) ? date('Y-m-d H:i:s', $start_time) : null;
-        $data['end_time'] = $end_time;
-        $data['end_date'] = !empty($end_time) ? date('Y-m-d H:i:s', $end_time) : null;
         return $data;
     }
 
