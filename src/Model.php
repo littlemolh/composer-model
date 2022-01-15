@@ -134,14 +134,28 @@ class Model extends \think\Model
      * @param string $field 字段名
      * @return array
      */
-    public function totalSum($params = [], $field = '')
+    public function totalSum($params = [], $field = '', $join = [])
     {
-        $wsql = $this->commonWsql($params);
-
-        return $this->where($wsql)->sum($field);
+        $wsql = $this->commonWsql($params, $join);
+        $this->alias($this->aliasName)->where($wsql);
+        foreach ($join as $val) {
+            $this->join($val[0], $val[1], $val[2] ?? null);
+        }
+        return $this->sum($field);
     }
 
 
+    /**
+     * 整理where
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2022-01-15
+     * @version 2022-01-15
+     * @param array $params
+     * @param array $with
+     * @return array
+     */
     protected  function commonWsql($params = [], $with = [])
     {
 
@@ -158,7 +172,7 @@ class Model extends \think\Model
                 continue;
             } elseif (is_array($val)) {
                 if (count($val) == 3) {
-                    //区间查询
+                    // array(array('gt',3),array('lt',10), 'or');
                     if (empty($val[0][1]) && empty($val[1][1])) {
                         unset($params[$key]);
                         continue;
@@ -206,10 +220,12 @@ class Model extends \think\Model
             }
         }
 
-        if (!empty($with) && strpos($key, '.') === false) {
+        if (!empty($with)) {
             foreach ($params as $key => $val) {
-                $params[$this->aliasName . '.' . $key] = $val;
-                unset($params[$key]);
+                if (strpos($key, '.') === false) {
+                    $params[$this->aliasName . '.' . $key] = $val;
+                    unset($params[$key]);
+                }
             }
         }
         return $params;
@@ -227,11 +243,11 @@ class Model extends \think\Model
      * @param array $field  查询字段
      * @return array
      */
-    public function getGroupListData($params = [], $group = '', $field = '*', $with = [])
+    public function getGroupListData($params = [], $group = '', $field = '*', $join = [])
     {
         $data = [];
 
-        $wsql  = $this->commonWsql($params);
+        $wsql  = $this->commonWsql($params, $join);
 
 
         //整理字段
@@ -253,19 +269,24 @@ class Model extends \think\Model
         } else {
             $fields[] = ' count(*) as count ';
         }
-        $data['rows'] = $this
-            ->field($fields)
-            ->with($with)
-            ->where($wsql)
+
+        $this->alias($this->aliasName)
+            ->field($fields);
+        foreach ($join as $val) {
+            $this->join($val[0], $val[1], $val[2] ?? null);
+        }
+        $data['rows'] = $this->where($wsql)
             ->order('count desc')
             ->group($group)
             ->page($params['page'] ?? $this->page, $params['pagesize'] ?? $this->pagesize)
             ->select();
 
-        $data['total'] = $this
-            ->field($fields)
-            ->with($with)
-            ->where($wsql)
+        $this->alias($this->aliasName)
+            ->field($fields);
+        foreach ($join as $val) {
+            $this->join($val[0], $val[1], $val[2] ?? null);
+        }
+        $data['total'] = $this->where($wsql)
             ->order('count desc')
             ->group($group)
             ->count();
