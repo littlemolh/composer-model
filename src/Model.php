@@ -428,9 +428,10 @@ class Model extends \think\Model
      * @param $msg  错误/提示信息信息
      * @return Auth
      */
-    public function setMessage($msg)
+    public function setMessage($msg, $code = 0)
     {
         $this->message = $msg;
+        $this->code = $code;
         return $this;
     }
 
@@ -441,5 +442,14 @@ class Model extends \think\Model
     public function getMessage()
     {
         return (function_exists('__')) ? __($this->message) : $this->message;
+    }
+
+    /**
+     * 获取错误信息
+     * @return string
+     */
+    public function getCode()
+    {
+        return $this->code;
     }
 }
