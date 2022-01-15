@@ -39,6 +39,7 @@ class Model extends \think\Model
     protected $cacheTime = 3600;
 
     protected $message = '';
+    protected $code = null;
 
 
     /**
