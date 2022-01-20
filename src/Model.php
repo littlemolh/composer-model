@@ -132,7 +132,7 @@ class Model extends \think\Model
      * @version 2021-04-02
      * @param array $params 筛选条件
      * @param string $field 字段名
-     * @return array
+     * @return int|float
      */
     public function totalSum($params = [], $field = '', $join = [])
     {
@@ -202,7 +202,7 @@ class Model extends \think\Model
 
             if (isset($params['end_date'])) {
                 $params['end_time'] = strtotime($params['end_date']);
-                if ('00' == date("H") && '00' == date("i") && '00' == date("s")) {
+                if ('00' == date("H", $params['end_time']) && '00' == date("i", $params['end_time']) && '00' == date("s", $params['end_time'])) {
                     $params['end_time'] = strtotime('+1 day', $params['end_time']) - 1;
                 }
                 unset($params['end_date']);
