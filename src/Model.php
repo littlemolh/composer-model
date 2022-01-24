@@ -253,12 +253,14 @@ class Model extends \think\Model
         if ($field == '*') {
             $fields = '*';
         } else if (is_array($field)) {
-            $fields[] = $group;
+            if ($group) {
+                $fields[] = $group;
+            }
             foreach ($field as $val) {
                 $fields[] = $val;
             }
         } elseif (is_string($field)) {
-            $fields = $group . ' , ' . $field;
+            $fields = ($group ? $group . ' , ' : '') . $field;
         }
 
         if (is_string($fields)) {
