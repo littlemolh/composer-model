@@ -245,30 +245,19 @@ class Model extends \think\Model
         $wsql  = $this->commonWsql($params, $join);
 
         //整理字段
-        $fields = null;
-
-        if ($field == '*') {
-            $fields = '*';
-        } else if (is_array($field)) {
-            if ($group) {
-                $fields[] = $group;
+        if ($field != "*") {
+            if (is_array($field)) {
+                $field = implode(',', $field);
             }
-            foreach ($field as $val) {
-                $fields[] = $val;
+            if ($group && $group != $field) {
+                $field = $group . ',' . $field;
             }
-        } elseif (is_string($field)) {
-            $fields = ($group ? $group . ' , ' : '') . $field;
         }
-
-        if (is_string($fields)) {
-            $fields .= ',count(*) as count ';
-        } else {
-            $fields[] = ' count(*) as count ';
-        }
+        $field = ' count(*) as count ,' . $field;
 
         // 列表
         $this->alias($this->aliasName)
-            ->field($fields);
+            ->field($field);
         foreach ($join as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
@@ -281,7 +270,7 @@ class Model extends \think\Model
 
         // 统计
         $this->alias($this->aliasName)
-            ->field($fields);
+            ->field($field);
         foreach ($join as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
