@@ -242,10 +242,7 @@ class Model extends \think\Model
      */
     public function getGroupListData($params = [], $group = '', $field = '*', $join = [])
     {
-        $data = [];
-
         $wsql  = $this->commonWsql($params, $join);
-
 
         //整理字段
         $fields = null;
@@ -269,17 +266,20 @@ class Model extends \think\Model
             $fields[] = ' count(*) as count ';
         }
 
+        // 列表
         $this->alias($this->aliasName)
             ->field($fields);
         foreach ($join as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
+
         $rows = $this->where($wsql)
             ->order('count desc')
             ->group($group)
             ->page($params['page'] ?? $this->page, $params['pagesize'] ?? $this->pagesize)
             ->select();
 
+        // 统计
         $this->alias($this->aliasName)
             ->field($fields);
         foreach ($join as $val) {
