@@ -72,12 +72,9 @@ class Model extends \think\Model
             ->order($orderby, $orderway)
             ->select();
         $this->parseListData($rows);
-        $data['rows'] = $rows;
-        $data['total'] = $this->totalCount($params, $with) ?: 0;
-        $data['page'] = $page;
-        $data['lastpage'] = ceil($data['total'] / $pagesize);
-        $data['pagesize'] = $pagesize;
-        return $data;
+        $total = $this->totalCount($params, $with) ?: 0;
+        $lastpage = ceil($total / $pagesize);
+        return compact('total', 'page', 'pagesize',  'lastpage', 'rows');
     }
 
     /**
@@ -261,7 +258,7 @@ class Model extends \think\Model
                 $fields[] = $val;
             }
         } elseif (is_string($field)) {
-            $fields[] = $group;
+            $fields = $group . ' , ' . $field;
         }
 
         if (is_string($fields)) {
@@ -275,7 +272,7 @@ class Model extends \think\Model
         foreach ($join as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
-        $data['rows'] = $this->where($wsql)
+        $rows = $this->where($wsql)
             ->order('count desc')
             ->group($group)
             ->page($params['page'] ?? $this->page, $params['pagesize'] ?? $this->pagesize)
@@ -286,12 +283,12 @@ class Model extends \think\Model
         foreach ($join as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
-        $data['total'] = $this->where($wsql)
+        $total = $this->where($wsql)
             ->order('count desc')
             ->group($group)
             ->count();
 
-        return $data;
+        return compact('rows', 'total');
     }
 
     /**
