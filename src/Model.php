@@ -72,7 +72,7 @@ class Model extends \think\Model
             ->order($orderby, $orderway)
             ->select();
         $this->parseListData($rows);
-        $total = $this->totalCount($params, $with) ?: 0;
+        $total = $this->totalCount($params, null, null, $with) ?: 0;
         $lastpage = ceil($total / $pagesize);
         return compact('total', 'page', 'pagesize',  'lastpage', 'rows');
     }
@@ -108,14 +108,20 @@ class Model extends \think\Model
      * @param array $params 筛选条件
      * @return int
      */
-    public function totalCount($params = [], $with = [])
+    public function totalCount($params = [], $group = null, $field = null, $join = [])
     {
-        $wsql = $this->commonWsql($params, $with);
+        $wsql = $this->commonWsql($params, $join);
 
-        return $this
-            ->alias($this->aliasName)
-            ->with($with)
-            ->where($wsql)
+        $fieldNew = $this->initField($field, $group);
+
+        // 统计
+        $this->alias($this->aliasName)
+            ->field($fieldNew);
+        foreach ($join as $val) {
+            $this->join($val[0], $val[1], $val[2] ?? null);
+        }
+        return  $this->where($wsql)
+            ->group($group)
             ->count();
     }
 
@@ -240,28 +246,15 @@ class Model extends \think\Model
      * @param array $field  查询字段
      * @return array
      */
-    public function getGroupListData($params = [], $group = '', $field = '*', $join = [])
+    public function getGroupListData($params = [], $group, $field = '*', $join = [])
     {
         $wsql  = $this->commonWsql($params, $join);
 
-        //整理字段
-        if ($field != "*") {
-            if (is_array($field)) {
-                $field = implode(',', $field);
-            }
-            if ($group && $group != $field) {
-                $field = $group . ',' . $field;
-            }
-        }
-        if (empty($field)) {
-            $field = ' count(*) as count';
-        } else {
-            $field = $field . ', count(*) as count ';
-        }
+        $fieldNew = $this->initField($field, $group);
 
         // 列表
         $this->alias($this->aliasName)
-            ->field($field);
+            ->field($fieldNew);
         foreach ($join as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
@@ -273,19 +266,37 @@ class Model extends \think\Model
             ->select();
 
         // 统计
-        $this->alias($this->aliasName)
-            ->field($field);
-        foreach ($join as $val) {
-            $this->join($val[0], $val[1], $val[2] ?? null);
-        }
-        $total = $this->where($wsql)
-            ->order('count desc')
-            ->group($group)
-            ->count();
+        $total = $this->totalCount($params, $group, $field, $join);
 
         return compact('rows', 'total');
     }
 
+    /**
+     * 整理查询字段
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2022-01-27
+     * @version 2022-01-27
+     * @param string $field
+     * @param string $group
+     * @return void
+     */
+    public function initField($field = '*', $group = '')
+    {
+        if ($field != "*") {
+            if (is_array($field)) {
+                $field = implode(',', $field);
+            }
+            if ($group && $group != $field) {
+                $field = $group . ',' . $field;
+            }
+        }
+        if ($group) {
+            $field = $field . ', count(*) as count ';
+        }
+        return $field;
+    }
     /**
      * 获取一条缓存数据
      *
