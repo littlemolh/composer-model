@@ -245,6 +245,7 @@ class Model extends \think\Model
         $wsql  = $this->commonWsql($params, $join);
 
         //整理字段
+        //整理字段
         if ($field != "*") {
             if (is_array($field)) {
                 $field = implode(',', $field);
@@ -253,7 +254,11 @@ class Model extends \think\Model
                 $field = $group . ',' . $field;
             }
         }
-        $field = ' count(*) as count ,' . $field;
+        if (empty($field)) {
+            $field = ' count(*) as count';
+        } else {
+            $field = $field . ', count(*) as count ';
+        }
 
         // 列表
         $this->alias($this->aliasName)
