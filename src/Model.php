@@ -245,7 +245,6 @@ class Model extends \think\Model
         $wsql  = $this->commonWsql($params, $join);
 
         //整理字段
-        //整理字段
         if ($field != "*") {
             if (is_array($field)) {
                 $field = implode(',', $field);
