@@ -71,6 +71,7 @@ class Model extends \think\Model
             ->page($page, $pagesize)
             ->order($orderby, $orderway)
             ->select();
+
         $this->parseListData($rows);
         $total = $this->totalCount($params, null, null, $with) ?: 0;
         $lastpage = ceil($total / $pagesize);
@@ -249,8 +250,7 @@ class Model extends \think\Model
     public function getGroupListData($params = [], $group, $field = '*', $join = [])
     {
         $wsql  = $this->commonWsql($params, $join);
-
-        $fieldNew = $this->initField($field, $group);
+        $fieldNew = $this->initField($field, $group ?: true);
 
         // 列表
         $this->alias($this->aliasName)
@@ -351,6 +351,7 @@ class Model extends \think\Model
      */
     private function getRowDataCacheName($id)
     {
+        // \littlemo\utils\Tools::createSign($id);
         return str_replace('_', '-', $this->table) . ':row-data:' . $id;
     }
     /**
