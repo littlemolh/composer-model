@@ -284,7 +284,9 @@ class Model extends \think\Model
      */
     public function initField($field = '*', $group = '')
     {
-        if ($field != "*") {
+        if (empty($field)) {
+            $field = $group;
+        } elseif ($field != "*") {
             if (is_array($field)) {
                 $field = implode(',', $field);
             }
