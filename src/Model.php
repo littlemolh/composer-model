@@ -260,7 +260,7 @@ class Model extends \think\Model
         }
 
         $rows = $this->where($wsql)
-            ->order('count desc')
+            ->order($params['orderby'] ?? 'count', $params['orderway'] ?? 'desc')
             ->group($group)
             ->page($params['page'] ?? $this->page, $params['pagesize'] ?? $this->pagesize)
             ->select();
