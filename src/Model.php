@@ -109,7 +109,7 @@ class Model extends \think\Model
      * @param array $params 筛选条件
      * @return int
      */
-    public function totalCount($params = [], $group = null, $field = null, $join = [])
+    public function totalCount($params = [], $group = null, $field = null, $join = [], $having = '')
     {
         $wsql = $this->commonWsql($params, $join);
 
@@ -118,11 +118,12 @@ class Model extends \think\Model
         // 统计
         $this->alias($this->aliasName)
             ->field($fieldNew);
-        foreach ($join as $val) {
+        foreach ($join ?: [] as $val) {
             $this->join($val[0], $val[1], $val[2] ?? null);
         }
         return  $this->where($wsql)
             ->group($group)
+            ->having($having)
             ->count();
     }
 
