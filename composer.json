@@ -26,5 +26,10 @@
         "psr-4": {
             "littlemo\\model\\": "src"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "topthink/think-installer": true
+        }
     }
 }

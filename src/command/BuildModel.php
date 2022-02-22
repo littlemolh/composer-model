@@ -28,6 +28,7 @@ class BuildModel extends Command
             ->addOption('app', 'a', Option::VALUE_REQUIRED, 'app module name,defaule common') //应用目录，默认：common
             ->addOption('dirpath', 'd', Option::VALUE_REQUIRED, 'dir path')
             ->addOption('prefix', 'p', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀
+            ->addOption('table', 't', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀
             ->addOption('ignorePrefix', 'i', Option::VALUE_REQUIRED, 'file name and class name ignore prefix') //忽略表名前缀,文件名和class名忽略表前缀的存在
             ->setDescription('Here is the remark ');
     }
@@ -35,6 +36,7 @@ class BuildModel extends Command
     static $appname = null;
     static $dirpath = null;
     static $prefix = null;
+    static $table = null;
     static $namespace = null;
     static $ignorePrefix = true;
     static $newModel = [];
@@ -93,6 +95,11 @@ class BuildModel extends Command
         }
         $output->info('[prefix]     -> ' . self::$prefix);
 
+        if ($input->hasOption('table')) {
+            self::$table = $input->getOption('table');
+        }
+        $output->info('[table]     -> ' . self::$table);
+
         self::$namespace = 'app\\' . $app . '\\model';
         $output->info('[namespace]  -> ' . self::$namespace);
 
@@ -122,6 +129,7 @@ class BuildModel extends Command
 
         $dir =  self::$dirpath;
         $p = self::$prefix;
+        $t = self::$table;
 
         //获取model列表
         if (is_dir($dir)) {
@@ -141,6 +149,10 @@ class BuildModel extends Command
 
             //排除非指定前缀表名
             if (!empty($p) && substr($val, 0, strlen($p)) != $p) {
+                continue;
+            }
+
+            if (!empty($t) && $val != $t) {
                 continue;
             }
 
