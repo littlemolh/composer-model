@@ -27,6 +27,7 @@ class BuildModel extends Command
             ->addArgument('app', Argument::OPTIONAL, "app module name,defaule:common") //应用目录，默认：common
             ->addOption('app', 'a', Option::VALUE_REQUIRED, 'app module name,defaule common') //应用目录，默认：common
             ->addOption('dirpath', 'd', Option::VALUE_REQUIRED, 'dir path')
+            ->addOption('relative_dir', 'r', Option::VALUE_REQUIRED, 'relative to app model dir') //相对应用的路径
             ->addOption('prefix', 'p', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀
             ->addOption('table', 't', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀
             ->addOption('ignorePrefix', 'i', Option::VALUE_REQUIRED, 'file name and class name ignore prefix') //忽略表名前缀,文件名和class名忽略表前缀的存在
@@ -35,6 +36,7 @@ class BuildModel extends Command
 
     static $appname = null;
     static $dirpath = null;
+    static $relative_dir = null;
     static $prefix = null;
     static $table = null;
     static $namespace = null;
@@ -81,11 +83,13 @@ class BuildModel extends Command
         }
         $output->info('[app module] -> ' . $app);
 
-        if ($input->hasOption('dirpath')) {
-            self::$dirpath = $input->getOption('dirpath');
-        } else {
-            self::$dirpath = $dir  . $app . DS . 'model' . DS;
+        self::$dirpath = $dir  . $app . DS . 'model' . DS;
+        self::$relative_dir = '';
+        if ($input->hasOption('relative_dir')) {
+            self::$relative_dir .= $input->getOption('relative_dir');
         }
+        self::$dirpath .= self::$relative_dir . DS;
+        $output->info('[relative_dir]    -> ' .  self::$relative_dir);
         $output->info('[dirpath]    -> ' .  self::$dirpath);
 
 
@@ -128,8 +132,15 @@ class BuildModel extends Command
         $prefix = config('database.prefix');
 
         $dir =  self::$dirpath;
+
         $p = self::$prefix;
         $t = self::$table;
+
+        $rd =  self::$relative_dir;
+
+        $rd =  str_replace('/', "", $rd);
+        $rd =  str_replace('\\', '', $rd);
+        $prd = $p . ($rd ? $rd . '_' : '');
 
         //获取model列表
         if (is_dir($dir)) {
@@ -147,8 +158,8 @@ class BuildModel extends Command
         foreach ($tables as $val) {
             $isnew = true;
 
-            //排除非指定前缀表名
-            if (!empty($p) && substr($val, 0, strlen($p)) != $p) {
+            //排除非指定前缀表名 
+            if (!empty($prd) && substr($val, 0, strlen($prd)) != $prd) {
                 continue;
             }
 
@@ -160,7 +171,7 @@ class BuildModel extends Command
             //排除已有模型
             $tempVar = $val;
             if (self::$ignorePrefix) {
-                $tempVar = str_replace(self::$prefix, "", $val);
+                $tempVar = substr($val, strlen($prd));
             }
             foreach ($model as $v) {
 
@@ -192,6 +203,9 @@ class BuildModel extends Command
     private function createModel($output)
     {
         $prefix = config('database.prefix');
+
+        $rd =  self::$relative_dir;
+
         if (!is_dir(self::$dirpath)) {
             mkdir(self::$dirpath, 0777, true);
         }
@@ -213,13 +227,15 @@ class BuildModel extends Command
                 }
             };
 
+            //去表前缀
+            $table_name = substr($val, strlen($prefix));
 
-            $table_name = str_replace($prefix, "", $val);
-            $className = ucwords($this->convertUnderline($table_name));
+            //按照文件夹简化类名
+            $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($rd))));
 
             $contents = "<?php\n";
             $contents .= "\n";
-            $contents .= "namespace " . self::$namespace . "; \n";
+            $contents .= "namespace " . self::$namespace . ($rd ? ('\\' . rtrim($rd, DS)) : '') . "; \n";
             $contents .= "\n";
             // $contents .= "use littlemo\\model\\BaseModel; \n";
             $contents .= "\n";
@@ -263,7 +279,7 @@ class BuildModel extends Command
      * @since 2021-08-12
      * @version 2021-08-12
      * @param string $str
-     * @return void
+     * @return string
      */
     static function convertUnderline($str)
     {
@@ -286,7 +302,7 @@ class BuildModel extends Command
      * @since 2021-08-12
      * @version 2021-08-12
      * @param string $str
-     * @return void
+     * @return string
      */
     static function humpToLine($str)
     {
