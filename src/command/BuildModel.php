@@ -28,7 +28,7 @@ class BuildModel extends Command
             ->addOption('app', 'a', Option::VALUE_REQUIRED, 'app module name,defaule common') //应用目录，默认：common
             ->addOption('dirpath', 'd', Option::VALUE_REQUIRED, 'dir path')
             ->addOption('relative_dir', 'r', Option::VALUE_REQUIRED, 'relative to app model dir') //相对应用的路径
-            ->addOption('prefix', 'p', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀
+            ->addOption('prefix', 'p', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀 必须指定
             ->addOption('table', 't', Option::VALUE_REQUIRED, 'table name prefix') //表名前缀
             ->addOption('ignorePrefix', 'i', Option::VALUE_REQUIRED, 'file name and class name ignore prefix') //忽略表名前缀,文件名和class名忽略表前缀的存在
             ->setDescription('Here is the remark ');
@@ -228,7 +228,7 @@ class BuildModel extends Command
             };
 
             //去表前缀
-            $table_name = substr($val, strlen($prefix));
+            $table_name = substr($val, 0, strlen($prefix)) == $prefix ? substr($val, strlen($prefix)) : $val;
 
             //按照文件夹简化类名
             $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($rd))));
