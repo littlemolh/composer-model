@@ -152,7 +152,7 @@ class BuildModel extends Command
             }
         }
         //获取数据库table_name列表
-        foreach (Db::Query('select table_name from information_schema.tables where table_schema=\'' . $database . '\'') as $val) {
+        foreach (Db::Query('select TABLE_NAME from information_schema.tables where table_schema=\'' . $database . '\'') as $val) {
             $tables[] = $val['TABLE_NAME'];
         }
         foreach ($tables as $val) {
