@@ -86,9 +86,9 @@ class BuildModel extends Command
         self::$dirpath = $dir  . $app . DS . 'model' . DS;
         self::$relative_dir = '';
         if ($input->hasOption('relative_dir')) {
-            self::$relative_dir .= $input->getOption('relative_dir');
+            self::$relative_dir .= $input->getOption('relative_dir') . DS;
         }
-        self::$dirpath .= self::$relative_dir . DS;
+        self::$dirpath .= self::$relative_dir;
         $output->info('[relative_dir]    -> ' .  self::$relative_dir);
         $output->info('[dirpath]    -> ' .  self::$dirpath);
 
