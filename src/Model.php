@@ -24,7 +24,7 @@ class Model extends \think\Model
     // 定义时间戳字段名
     protected $createTime = 'createtime';
     protected $updateTime = 'updatetime';
-    protected $tablePrimary = 'id';
+    protected $tablePrimary = 'id'; //后续版本将不再使用
     protected $deleteTime = false;
 
     protected $primaryId = 0; //主键ID
@@ -59,7 +59,7 @@ class Model extends \think\Model
 
         $page =  ($params['page'] ?? $this->page) ?: $this->page;
         $pagesize = ($params['pagesize'] ?? $this->pagesize) ?: $this->pagesize;
-        $orderby = $params['orderby'] ?? $this->tablePrimary;
+        $orderby = $params['orderby'] ?? ($this->pk ?: $this->getPk());
         $orderway = $params['orderway'] ?? 'desc';
 
         $wsql = $this->commonWsql($params, $with);
@@ -398,7 +398,7 @@ class Model extends \think\Model
     public function add($params, $allowField = [])
     {
         if ($this->allowField($allowField ?: true)->save($params)) {
-            $this->primaryId = $this[$this->tablePrimary];
+            $this->primaryId = $this[$this->pk ?: $this->getPk()];
             return $this->primaryId;
         } else {
             return false;
@@ -424,7 +424,7 @@ class Model extends \think\Model
             $row = $this->get($row);
         }
         //清除缓存
-        $this->rmRowDataCache($row[$this->tablePrimary]);
+        $this->rmRowDataCache($row[$this->pk ?: $this->getPk()]);
 
         return $row->allowField($allowField ?: true)->save($params);
     }
@@ -446,7 +446,7 @@ class Model extends \think\Model
             $row = $this->get($row);
         }
         //清除缓存
-        $this->rmRowDataCache($row[$this->tablePrimary]);
+        $this->rmRowDataCache($row[$this->pk ?: $this->getPk()]);
 
         return $row->delete();
     }
