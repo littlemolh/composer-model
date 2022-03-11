@@ -172,7 +172,7 @@ class Model extends \think\Model
             }
 
             //过滤空字段
-            if (!is_array($val) && strlen($val) <= 0) {
+            if (!is_array($val) && $val !== null && strlen($val) <= 0) {
                 unset($params[$key]);
                 continue;
             } elseif (is_array($val)) {
