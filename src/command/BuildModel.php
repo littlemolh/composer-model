@@ -215,17 +215,24 @@ class BuildModel extends Command
             $createTime = 'false';
             $updateTime = 'false';
             $deleteTime = 'false';
-            foreach (Db::Query('select COLUMN_NAME, column_comment from INFORMATION_SCHEMA.Columns where table_name=\'' . $val . '\'') as $v) {
-                if ($v['COLUMN_NAME'] == 'createtime' || $v['COLUMN_NAME'] == 'intime') {
+            $autoWriteTimestamp = '';
+            foreach (Db::Query('select COLUMN_NAME, column_comment, DATA_TYPE, EXTRA from INFORMATION_SCHEMA.Columns where table_name=\'' . $val . '\'') as $v) {
+                if (($v['COLUMN_NAME'] == 'createtime' || $v['COLUMN_NAME'] == 'intime')) {
                     $createTime = '\'' . $v['COLUMN_NAME'] . '\'';
+                    $createTimeType = $v['DATA_TYPE'];
                 }
                 if ($v['COLUMN_NAME'] == 'updatetime' || $v['COLUMN_NAME'] == 'uptime') {
                     $updateTime = '\'' . $v['COLUMN_NAME'] . '\'';
+                    $updateTimeType = $v['DATA_TYPE'];
                 }
                 if ($v['COLUMN_NAME'] == 'deletetime' || $v['COLUMN_NAME'] == 'deltime') {
                     $deleteTime = '\'' . $v['COLUMN_NAME'] . '\'';
+                    $deleteTimeType = $v['DATA_TYPE'];
                 }
             };
+            if ($createTimeType == $updateTimeType && $updateTimeType == $deleteTimeType && $deleteTimeType == 'int') {
+                $autoWriteTimestamp = '\'int\'';
+            }
 
             //去表前缀
             $table_name = substr($val, 0, strlen($prefix)) == $prefix ? substr($val, strlen($prefix)) : $val;
@@ -242,6 +249,11 @@ class BuildModel extends Command
             $contents .= "class " . $className . " extends \\littlemo\\model\\Model \n{ \n";
             $contents .= "    // 表名 \n";
             $contents .= '    protected $' . (substr($val, 0, strlen($prefix)) == $prefix ? 'name' : 'table') . ' = \'' . $table_name . '\';' . " \n";
+            if ($autoWriteTimestamp) {
+                // 自动写入时间戳字段
+                $contents .= "    // 自动写入时间戳字段 \n";
+                $contents .= '    protected $autoWriteTimestamp = ' . $autoWriteTimestamp . ';' . " \n";
+            }
             $contents .= "    // 定义时间戳字段名 \n";
             $contents .= '    protected $createTime = ' . $createTime . ';' . " \n";
             $contents .= '    protected $updateTime = ' . $updateTime . ';' . " \n";
