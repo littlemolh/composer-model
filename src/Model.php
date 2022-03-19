@@ -18,13 +18,11 @@ class Model extends \think\Model
 {
     // 表名
 
-    // 自动写入时间戳字段
-    protected $autoWriteTimestamp = 'int';
+
 
     // 定义时间戳字段名
     protected $createTime = 'createtime';
     protected $updateTime = 'updatetime';
-    protected $tablePrimary = 'id'; //后续版本将不再使用
     protected $deleteTime = false;
 
     protected $primaryId = 0; //主键ID
@@ -91,7 +89,7 @@ class Model extends \think\Model
      */
     public function parseListData(&$data = [])
     {
-        foreach ($data as $key => &$val) {
+        foreach ($data as &$val) {
             if (is_object($val)) {
                 $val = $val->toArray();
             }
@@ -171,7 +169,7 @@ class Model extends \think\Model
                 continue;
             }
 
-            //过滤空字段
+            //过滤空字段,不含：0,null
             if (!is_array($val) && $val !== null && strlen($val) <= 0) {
                 unset($params[$key]);
                 continue;
@@ -182,10 +180,10 @@ class Model extends \think\Model
                         unset($params[$key]);
                         continue;
                     } else {
-                        if (empty($val[0][1])) {
+                        if (empty($val[0][1]) && $val[0][1] !== 0) {
                             $params[$key] = $val[1];
                         } else
-                        if (empty($val[1][1])) {
+                        if (empty($val[1][1]) && $val[1][1] !== 0) {
                             $params[$key] = $val[0];
                         }
                     }
