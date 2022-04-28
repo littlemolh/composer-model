@@ -18,7 +18,7 @@ composer.json
 ```json
 {
     "require": {
-        "littlemo/model": "~1.0.0"
+        "littlemo/model": "~1.3.0"
     }
 }
 ```
