@@ -203,7 +203,8 @@ class BuildModel extends Command
     private function createModel($output)
     {
         //通用前缀
-        $prefix = self::$prefix ?: config('database.prefix');
+        $prefix =  config('database.prefix');
+        $p = self::$prefix;
         $rd =  self::$relative_dir;
 
         if (!is_dir(self::$dirpath)) {
@@ -243,6 +244,10 @@ class BuildModel extends Command
             //按照文件夹简化类名
 
             $className = ucwords($this->convertUnderline($table_name));
+
+            if (substr($className, 0, strlen($p)) == ucwords($this->convertUnderline($p))) {
+                $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($p))));
+            }
             if (substr($className, 0, strlen($rd)) == ucwords($this->convertUnderline($rd))) {
                 $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($rd))));
             }
