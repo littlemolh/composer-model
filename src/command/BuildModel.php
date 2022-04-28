@@ -86,7 +86,7 @@ class BuildModel extends Command
         self::$dirpath = $dir  . $app . DS . 'model' . DS;
         self::$relative_dir = '';
         if ($input->hasOption('relative_dir')) {
-            self::$relative_dir .= $input->getOption('relative_dir') . DS;
+            self::$relative_dir .= $input->getOption('relative_dir');
         }
         self::$dirpath .= self::$relative_dir;
         $output->info('[relative_dir]    -> ' .  self::$relative_dir);
@@ -202,8 +202,8 @@ class BuildModel extends Command
      */
     private function createModel($output)
     {
-        $prefix = config('database.prefix');
-
+        //通用前缀
+        $prefix = self::$prefix ?: config('database.prefix');
         $rd =  self::$relative_dir;
 
         if (!is_dir(self::$dirpath)) {
@@ -216,6 +216,9 @@ class BuildModel extends Command
             $updateTime = 'false';
             $deleteTime = 'false';
             $autoWriteTimestamp = '';
+            $createTimeType = '';
+            $updateTimeType = '';
+            $deleteTimeType = '';
             foreach (Db::Query('select COLUMN_NAME, column_comment, DATA_TYPE, EXTRA from INFORMATION_SCHEMA.Columns where table_name=\'' . $val . '\'') as $v) {
                 if (($v['COLUMN_NAME'] == 'createtime' || $v['COLUMN_NAME'] == 'intime')) {
                     $createTime = '\'' . $v['COLUMN_NAME'] . '\'';
@@ -238,7 +241,12 @@ class BuildModel extends Command
             $table_name = substr($val, 0, strlen($prefix)) == $prefix ? substr($val, strlen($prefix)) : $val;
 
             //按照文件夹简化类名
-            $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($rd))));
+
+            $className = ucwords($this->convertUnderline($table_name));
+            if (substr($className, 0, strlen($rd)) == ucwords($this->convertUnderline($rd))) {
+                $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($rd))));
+            }
+
 
             $contents = "<?php\n";
             $contents .= "\n";
@@ -265,7 +273,7 @@ class BuildModel extends Command
             $contents .= "}";
 
             //要创建的两个文件
-            $fileName = self::$dirpath . $className . '.php';
+            $fileName = self::$dirpath . '/' . $className . '.php';
             //以读写方式打写指定文件，如果文件不存则创建
             if (($TxtRes = fopen($fileName, "w+")) === FALSE) {
                 $output->info("创建模型 失败 " . $fileName);
