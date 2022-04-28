@@ -211,8 +211,12 @@ class Model extends \think\Model
                 unset($params['end_date']);
             }
             if ($this->autoWriteTimestamp != 'int') {
-                if (isset($params['start_time'])) $params['start_time'] = date("Y-m-d H:i:s", $params['start_time']);
-                if (isset($params['end_time'])) $params['end_time'] = date("Y-m-d H:i:s", $params['end_time']);
+                if (isset($params['start_time']) && is_numeric($params['start_time'])) {
+                    $params['start_time'] = date("Y-m-d H:i:s", $params['start_time']);
+                }
+                if (isset($params['end_time']) && is_numeric($params['end_time'])) {
+                    $params['end_time'] = date("Y-m-d H:i:s", $params['end_time']);
+                }
             }
             if (isset($params['start_time']) && isset($params['end_time'])) {
                 $params[$k] = ['between', $params['start_time'] . ',' . $params['end_time']];
