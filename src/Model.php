@@ -76,6 +76,70 @@ class Model extends \think\Model
         return compact('total', 'page', 'pagesize',  'lastpage', 'rows');
     }
 
+    public function getRowData($params)
+    {
+        $params = $this->commonWsql($params);
+        $row = self::get($params);
+        $this->parseRowData($row);
+        return $row;
+    }
+    /**
+     * 获取一条缓存数据
+     *
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2021-07-03
+     * @version 2021-07-03
+     * @param int $id 主键ID
+     * @return array
+     */
+    public function getRowDataCache($id)
+    {
+        $name = $this->getRowDataCacheName($id);
+        if (Cache::has($name)) {
+            return Cache::get($name);
+        }
+        $data = $this->getRowData($id);
+        Cache::set($name, $data, $this->cacheTime);
+        return $data;
+    }
+    /**
+     * 删除一条缓存数据
+     *
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2021-07-03
+     * @version 2021-07-03
+     * @param int $id 主键ID
+     * @return boolean
+     */
+    public function rmRowDataCache($id)
+    {
+        $name = $this->getRowDataCacheName($id);
+        if (Cache::has($name)) {
+            return Cache::rm($name);
+        }
+    }
+
+    /**
+     * 生成单条信息缓存名称
+     *
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2021-07-07
+     * @version 2021-07-07
+     * @param int $id
+     * @return string
+     */
+    private function getRowDataCacheName($id)
+    {
+        // \littlemo\utils\Tools::createSign($id);
+        return str_replace('_', '-', $this->table) . ':row-data:' . $id;
+    }
+
     /**
      * 解析列表数据
      *
@@ -90,10 +154,42 @@ class Model extends \think\Model
     public function parseListData(&$data = [])
     {
         foreach ($data as &$val) {
-            if (is_object($val)) {
-                $val = $val->toArray();
-            }
+
+            $this->parseCommonData($data);
         }
+    }
+
+    /**
+     * 解析单条数据
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2022-04-28
+     * @version 2022-04-28
+     * @param array $data
+     * @return void
+     */
+    public function parseRowData(&$row)
+    {
+        return $this->parseCommonData($row);
+    }
+
+    /**
+     * 解析通用数据
+     * @description
+     * @example
+     * @author LittleMo 25362583@qq.com
+     * @since 2022-04-28
+     * @version 2022-04-28
+     * @param array $data
+     * @return void
+     */
+    public function parseCommonData(&$row)
+    {
+        if (is_object($row)) {
+            $row = $row->toArray();
+        }
+        return $row;
     }
 
     /**
@@ -155,12 +251,15 @@ class Model extends \think\Model
      * @author LittleMo 25362583@qq.com
      * @since 2022-01-15
      * @version 2022-01-15
-     * @param array $params
+     * @param array|string $params
      * @param array $with
      * @return array
      */
     protected  function commonWsql($params = [], $with = [])
     {
+        if (!is_array($params)) {
+            return $params;
+        }
 
         foreach ($params as $key => $val) {
             //过滤分页和排序
@@ -305,63 +404,8 @@ class Model extends \think\Model
         }
         return $field;
     }
-    /**
-     * 获取一条缓存数据
-     *
-     * @description
-     * @example
-     * @author LittleMo 25362583@qq.com
-     * @since 2021-07-03
-     * @version 2021-07-03
-     * @param int $id 主键ID
-     * @return array
-     */
-    public function getRowDataCache($id)
-    {
-        $name = $this->getRowDataCacheName($id);
-        if (Cache::has($name)) {
-            return Cache::get($name);
-        }
-        $data = self::get($id);
-        !empty($data) && $data = $data->toArray();
-        Cache::set($name, $data, $this->cacheTime);
-        return $data;
-    }
-    /**
-     * 删除一条缓存数据
-     *
-     * @description
-     * @example
-     * @author LittleMo 25362583@qq.com
-     * @since 2021-07-03
-     * @version 2021-07-03
-     * @param int $id 主键ID
-     * @return boolean
-     */
-    public function rmRowDataCache($id)
-    {
-        $name = $this->getRowDataCacheName($id);
-        if (Cache::has($name)) {
-            return Cache::rm($name);
-        }
-    }
 
-    /**
-     * 生成单条信息缓存名称
-     *
-     * @description
-     * @example
-     * @author LittleMo 25362583@qq.com
-     * @since 2021-07-07
-     * @version 2021-07-07
-     * @param int $id
-     * @return string
-     */
-    private function getRowDataCacheName($id)
-    {
-        // \littlemo\utils\Tools::createSign($id);
-        return str_replace('_', '-', $this->table) . ':row-data:' . $id;
-    }
+
     /**
      * 生成列表信息缓存名称
      *
