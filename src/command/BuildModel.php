@@ -245,6 +245,7 @@ class BuildModel extends Command
 
             $className = ucwords($this->convertUnderline($table_name));
 
+            $p = str_replace('/', '_', $p);
             if (substr($className, 0, strlen($p)) == ucwords($this->convertUnderline($p))) {
                 $className = substr(ucwords($this->convertUnderline($table_name)), strlen(ucwords($this->convertUnderline($p))));
             }
