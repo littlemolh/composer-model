@@ -151,11 +151,11 @@ class Model extends \think\Model
      * @param array $data
      * @return array
      */
-    public function parseListData(&$data = [])
+    public function parseListData(&$rows = [])
     {
-        foreach ($data as &$val) {
+        foreach ($rows as &$row) {
 
-            $this->parseCommonData($data);
+            $this->parseCommonData($row);
         }
     }
 
