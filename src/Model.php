@@ -13,6 +13,7 @@
 namespace littlemo\model;
 
 use think\Cache;
+use think\Loader;
 
 class Model extends \think\Model
 {
@@ -26,7 +27,7 @@ class Model extends \think\Model
     protected $deleteTime = false;
 
     protected $primaryId = 0; //主键ID
-    protected $aliasName = 'a'; //(主表)别名
+    protected $aliasName = ''; //(主表)别名
     protected $page = 1;
     protected $pagesize = 10;
 
@@ -39,6 +40,22 @@ class Model extends \think\Model
     protected $message = '';
     protected $code = null;
 
+    protected $orderby = '';
+    protected $orderway = 'desc';
+
+
+    /**
+     * 构造方法
+     * @access public
+     * @param array|object $data 数据
+     */
+    public function __construct($data = [])
+    {
+        parent::__construct($data);
+
+        !$this->pk && $this->getPk();
+        $this->aliasName = $this->aliasName ?: Loader::parseName(basename(str_replace('\\', '/', get_class($this))));
+    }
 
     /**
      * 获取列表数据
@@ -55,24 +72,23 @@ class Model extends \think\Model
     {
         $data = [];
 
-        $page =  ($params['page'] ?? $this->page) ?: $this->page;
-        $pagesize = ($params['pagesize'] ?? $this->pagesize) ?: $this->pagesize;
-        $orderby = $params['orderby'] ?? ($this->pk ?: $this->getPk());
-        $orderway = $params['orderway'] ?? 'desc';
+        $page =  $this->page;
+        $pagesize = $this->pagesize;
+
 
         $wsql = $this->commonWsql($params, $with);
-
         $rows = $this
             ->alias($this->aliasName)
             ->where($wsql)
             ->with($with)
             ->page($page, $pagesize)
-            ->order($orderby, $orderway)
+            ->order($this->orderby, $this->orderway)
             ->select();
 
         $this->parseListData($rows);
-        $total = $this->totalCount($params, null, null, $with) ?: 0;
+        $total = $this->totalCount($params, $with) ?: 0;
         $lastpage = ceil($total / $pagesize);
+
         return compact('total', 'page', 'pagesize',  'lastpage', 'rows');
     }
 
@@ -203,21 +219,14 @@ class Model extends \think\Model
      * @param array $params 筛选条件
      * @return int
      */
-    public function totalCount($params = [], $group = null, $field = null, $join = [], $having = '')
+    public function totalCount($params = [],  $with = [])
     {
-        $wsql = $this->commonWsql($params, $join);
-
-        $fieldNew = $this->initField($field, $group);
+        $wsql = $this->commonWsql($params, $with);
 
         // 统计
         $this->alias($this->aliasName)
-            ->field($fieldNew);
-        foreach ($join ?: [] as $val) {
-            $this->join($val[0], $val[1], $val[2] ?? null);
-        }
-        return  $this->where($wsql)
-            ->group($group)
-            ->having($having)
+            ->where($wsql)
+            ->with($with)
             ->count();
     }
 
@@ -233,14 +242,10 @@ class Model extends \think\Model
      * @param string $field 字段名
      * @return int|float
      */
-    public function totalSum($params = [], $field = '', $join = [])
+    public function totalSum($params = [], $field = '', $with = [])
     {
-        $wsql = $this->commonWsql($params, $join);
-        $this->alias($this->aliasName)->where($wsql);
-        foreach ($join as $val) {
-            $this->join($val[0], $val[1], $val[2] ?? null);
-        }
-        return $this->sum($field);
+        $wsql = $this->commonWsql($params, $with);
+        return  $this->alias($this->aliasName)->with($with)->where($wsql)->sum($field);
     }
 
 
@@ -257,6 +262,12 @@ class Model extends \think\Model
      */
     protected  function commonWsql($params = [], $with = [])
     {
+
+        $this->page =  (int)($params['page'] ?? $this->page);
+        $this->pagesize = (int)($params['pagesize'] ?? $this->pagesize);
+        $this->orderby = $params['orderby'] ??  $this->orderby ?? $this->pk;
+        $this->orderway = $params['orderway'] ?? $this->orderway;
+
         if (!is_array($params)) {
             return $params;
         }
@@ -352,58 +363,27 @@ class Model extends \think\Model
      * @param array $field  查询字段
      * @return array
      */
-    public function getGroupListData($params = [], $group, $field = '*', $join = [])
+    public function getGroupListData($group, $params = [], $field = '*', $with = [])
     {
-        $wsql  = $this->commonWsql($params, $join);
-        $fieldNew = $this->initField($field, $group ?: true);
+        $wsql  = $this->commonWsql($params, $with);
+
+        $page =  $this->page;
+        $pagesize = $this->pagesize;
 
         // 列表
-        $this->alias($this->aliasName)
-            ->field($fieldNew);
-        foreach ($join as $val) {
-            $this->join($val[0], $val[1], $val[2] ?? null);
-        }
+        $model = $this->alias($this->aliasName)
+            ->where($wsql)
 
-        $rows = $this->where($wsql)
-            ->order($params['orderby'] ?? 'count', $params['orderway'] ?? 'desc')
-            ->group($group)
-            ->page($params['page'] ?? $this->page, $params['pagesize'] ?? $this->pagesize)
-            ->select();
+            ->with($with)
+            ->group($group);
 
+        $rows = $model->order($this->orderby, $this->orderway)->page($page, $pagesize)->select();
         // 统计
-        $total = $this->totalCount($params, $group, $field, $join);
-
-        return compact('rows', 'total');
+        $total = $model->count();
+        $lastpage = ceil($total / $pagesize);
+        return compact('total', 'page', 'pagesize',  'lastpage', 'rows');
     }
 
-    /**
-     * 整理查询字段
-     * @description
-     * @example
-     * @author LittleMo 25362583@qq.com
-     * @since 2022-01-27
-     * @version 2022-01-27
-     * @param string $field
-     * @param string $group
-     * @return void
-     */
-    public function initField($field = '*', $group = '')
-    {
-        if (empty($field)) {
-            $field = $group;
-        } elseif ($field != "*") {
-            if (is_array($field)) {
-                $field = implode(',', $field);
-            }
-            if ($group && $group != $field) {
-                $field = $group . ',' . $field;
-            }
-        }
-        if ($group) {
-            $field = $field . ', count(*) as count ';
-        }
-        return $field;
-    }
 
 
     /**
