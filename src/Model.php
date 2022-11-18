@@ -43,7 +43,7 @@ class Model extends \think\Model
     protected $orderby = '';
     protected $orderway = 'desc';
 
-    protected $validate = '';
+    protected $validateName = '';
 
 
     /**
@@ -57,7 +57,7 @@ class Model extends \think\Model
 
         !$this->pk && $this->getPk();
         $this->aliasName = $this->aliasName ?: Loader::parseName(basename(str_replace('\\', '/', get_class($this))));
-        $this->validate = str_replace("\\model\\", "\\validate\\", get_class($this));
+        $this->validateName = str_replace("\\model\\", "\\validate\\", get_class($this));
     }
 
     /**
@@ -268,7 +268,7 @@ class Model extends \think\Model
 
         $this->page =  (int)($params['page'] ?? $this->page);
         $this->pagesize = (int)($params['pagesize'] ?? $this->pagesize);
-        $this->orderby = $params['orderby'] ??  $this->orderby ?? $this->pk;
+        $this->orderby = $params['orderby'] ??  $this->orderby ?: $this->pk;
         $this->orderway = $params['orderway'] ?? $this->orderway;
 
         if (!is_array($params)) {
@@ -467,9 +467,6 @@ class Model extends \think\Model
      */
     public function del($row)
     {
-        if (!is_object($row)) {
-            $row = $this->get($row);
-        }
         //清除缓存
         $this->rmRowDataCache($row[$this->pk ?: $this->getPk()]);
 
