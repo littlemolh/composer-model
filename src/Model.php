@@ -43,6 +43,8 @@ class Model extends \think\Model
     protected $orderby = '';
     protected $orderway = 'desc';
 
+    protected $validate = '';
+
 
     /**
      * 构造方法
@@ -55,6 +57,7 @@ class Model extends \think\Model
 
         !$this->pk && $this->getPk();
         $this->aliasName = $this->aliasName ?: Loader::parseName(basename(str_replace('\\', '/', get_class($this))));
+        $this->validate = str_replace("\\model\\", "\\validate\\", get_class($this));
     }
 
     /**
@@ -426,12 +429,8 @@ class Model extends \think\Model
      */
     public function add($params, $allowField = [])
     {
-        if ($this->allowField($allowField ?: true)->save($params)) {
-            $this->primaryId = $this[$this->pk ?: $this->getPk()];
-            return $this->primaryId;
-        } else {
-            return false;
-        }
+        $this->allowField($allowField ?: true)->save($params);
+        return $this;
     }
 
     /**
@@ -447,11 +446,8 @@ class Model extends \think\Model
      * @param array         $allowField 允许修改的字段，默认为true
      * @return int
      */
-    public function edit($row, $params = [], $allowField = [])
+    public function edit(&$row, $params = [], $allowField = [])
     {
-        if (!is_object($row)) {
-            $row = $this->get($row);
-        }
         //清除缓存
         $this->rmRowDataCache($row[$this->pk ?: $this->getPk()]);
 
