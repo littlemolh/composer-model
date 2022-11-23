@@ -14,12 +14,6 @@ namespace littlemo\model;
 
 use think\Loader;
 
-use littlemo\model\traits\Where;
-use littlemo\model\traits\ParseData;
-use littlemo\model\traits\Total;
-use littlemo\model\traits\Cache;
-use littlemo\model\traits\Change;
-use littlemo\model\traits\GetData;
 
 class Model extends \think\Model
 {
@@ -52,13 +46,12 @@ class Model extends \think\Model
     protected $validateName = '';
 
 
-    use Where;
-    use ParseData;
-    use Total;
-    use Cache;
-    use Change;
-    use Change;
-    use GetData;
+    use \littlemo\model\traits\Where;
+    use \littlemo\model\traits\ParseData;
+    use \littlemo\model\traits\Total;
+    use \littlemo\model\traits\Cache;
+    use \littlemo\model\traits\Change;
+    use \littlemo\model\traits\GetData;
 
     /**
      * 构造方法
