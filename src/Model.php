@@ -427,10 +427,9 @@ class Model extends \think\Model
      * @param array $params
      * @return boolean/int
      */
-    public function add($params, $allowField = [], $isUpdate = false)
+    public function add($params, $allowField = [])
     {
-        $this->allowField($allowField ?: true)->isUpdate($isUpdate)->save($params);
-        return $this;
+        return  $this->allowField($allowField ?: true)->create($params);
     }
 
     /**
