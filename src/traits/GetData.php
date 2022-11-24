@@ -19,13 +19,11 @@ trait GetData
      */
     public function getListData($params = [], $with = [])
     {
-        $data = [];
+        $wsql = $this->commonWsql($params, $with);
 
         $page =  $this->page;
         $pagesize = $this->pagesize;
 
-
-        $wsql = $this->commonWsql($params, $with);
         $rows = $this
             ->alias($this->aliasName)
             ->where($wsql)
